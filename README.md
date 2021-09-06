@@ -25,9 +25,9 @@ The project is a JSON Based Inventory Management System. I have divided it in fo
 
 This project is actually divided into 2 files:
 
-<b>1.Adding_Elements_into_Inventory:</b> In this part, We create a records.json file which contains all the Inventories with details like product id(barcode),name,quantity,price,isAvailable,Expiry date. Here we can add new goods in the inventory and the records will be stored in records.json file.
+<b>1.Adding_Elements_into_Inventory:</b>  In this part, We create a records.json file which contains all the Inventories with details like product id(barcode),name,quantity,price,isAvailable,Expiry date. Here we can add new goods in the inventory and the records will be stored in records.json file.
 
-<b>2.Product Purchase:</b> In this part, a)We enter the transaction or purchase details like product id,no. of items purchased,name of customer, mobile number of customer. b)If the purchased items are available in inventory, then Bill is generated c)The detailes of the transactions are then stored in sales.json file with attributes like total transactions,transactio id,date,time, product name,total amount of purchase, customer name and customer mobile number.
+<b>2.Product Purchase:</b>  In this part, a)We enter the transaction or purchase details like product id,no. of items purchased,name of customer, mobile number of customer. b)If the purchased items are available in inventory, then Bill is generated c)The detailes of the transactions are then stored in sales.json file with attributes like total transactions,transactio id,date,time, product name,total amount of purchase, customer name and customer mobile number.
 
 # Tools used:
 
