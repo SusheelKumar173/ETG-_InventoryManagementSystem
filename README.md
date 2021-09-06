@@ -32,7 +32,9 @@ This project is actually divided into 2 files:
 # Tools used:
 
 <b>Google Colab</b>
-          - Colab notebooks are Jupyter notebooks that run in the cloud and are highly integrated with Google Drive, making them easy to set up, access, and share
+          - Colab notebooks are Jupyter notebooks that run in the cloud and are highly integrated with Google Drive, making them easy to set up, access, and share.
+          
+Thank You.!!
 
 
 
