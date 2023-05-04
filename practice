@@ -1,0 +1,1137 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/SusheelKumar173/ETG-_InventoryManagementSystem/blob/main/practice\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!pip install pyspark"
+      ],
+      "metadata": {
+        "id": "FEFIHuhGNMCo",
+        "outputId": "07dc1f6c-d4e5-4859-a20d-873892837a8b",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 4,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Looking in indexes: https://pypi.org/simple, https://us-python.pkg.dev/colab-wheels/public/simple/\n",
+            "Requirement already satisfied: pyspark in /usr/local/lib/python3.10/dist-packages (3.4.0)\n",
+            "Requirement already satisfied: py4j==0.10.9.7 in /usr/local/lib/python3.10/dist-packages (from pyspark) (0.10.9.7)\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from pyspark.sql import SparkSession\n",
+        "from pyspark.sql.types import StructType,StructField,IntegerType,StringType,DateType\n",
+        "from pyspark.sql.functions import when,lit,col,concat\n",
+        "import pyspark.sql.functions as func"
+      ],
+      "metadata": {
+        "id": "Y6ylKOEANNxr"
+      },
+      "execution_count": 100,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "my_spark = SparkSession.builder.appName('Practice').getOrCreate()"
+      ],
+      "metadata": {
+        "id": "uiI8nj2mNPhc"
+      },
+      "execution_count": 101,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "my_spark"
+      ],
+      "metadata": {
+        "id": "Bkq9v8YJNRMP",
+        "outputId": "ec0147e5-1e41-417b-d7ed-01e41fa3f119",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 219
+        }
+      },
+      "execution_count": 102,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "<pyspark.sql.session.SparkSession at 0x7f6374e9e2c0>"
+            ],
+            "text/html": [
+              "\n",
+              "            <div>\n",
+              "                <p><b>SparkSession - in-memory</b></p>\n",
+              "                \n",
+              "        <div>\n",
+              "            <p><b>SparkContext</b></p>\n",
+              "\n",
+              "            <p><a href=\"http://2a3d0318c700:4040\">Spark UI</a></p>\n",
+              "\n",
+              "            <dl>\n",
+              "              <dt>Version</dt>\n",
+              "                <dd><code>v3.4.0</code></dd>\n",
+              "              <dt>Master</dt>\n",
+              "                <dd><code>local[*]</code></dd>\n",
+              "              <dt>AppName</dt>\n",
+              "                <dd><code>Practice</code></dd>\n",
+              "            </dl>\n",
+              "        </div>\n",
+              "        \n",
+              "            </div>\n",
+              "        "
+            ]
+          },
+          "metadata": {},
+          "execution_count": 102
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "employee_df = my_spark.read.csv('Employee.csv',header=True)"
+      ],
+      "metadata": {
+        "id": "0HYFi_9vNTeI"
+      },
+      "execution_count": 187,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "employee_df.show()"
+      ],
+      "metadata": {
+        "id": "qivq4TjCNsjC",
+        "outputId": "d2f64ba0-2a45-4956-8c86-4c8f19650f61",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 188,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "+---+-------+------+-----+----------+\n",
+            "| id|   name|  city| dept|       doj|\n",
+            "+---+-------+------+-----+----------+\n",
+            "|  1|sravani| vizag| biba|19/06/2022|\n",
+            "|  2|susheel|   hyd|cloud|19/05/2022|\n",
+            "|  3|prabhas|   hyd|cloud|19/05/2022|\n",
+            "|  4|    ram|mumbai|  aws|14/12/1999|\n",
+            "+---+-------+------+-----+----------+\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "employee_df.printSchema()"
+      ],
+      "metadata": {
+        "id": "u96GLOdrNxcx",
+        "outputId": "b55cb572-6d61-4a87-d21d-67b381700b61",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 189,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "root\n",
+            " |-- id: string (nullable = true)\n",
+            " |-- name: string (nullable = true)\n",
+            " |-- city: string (nullable = true)\n",
+            " |-- dept: string (nullable = true)\n",
+            " |-- doj: string (nullable = true)\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "employee_df = my_spark.read.format(\"csv\").option(\"header\",True).option(\"inferSchema\",True).load(\"Employee.csv\")"
+      ],
+      "metadata": {
+        "id": "o_qu_sDdN1PC"
+      },
+      "execution_count": 190,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "employee_df.printSchema()"
+      ],
+      "metadata": {
+        "id": "PlYJSWCaN53d",
+        "outputId": "e6c05643-a85e-4c8a-920b-b43797651988",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 191,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "root\n",
+            " |-- id: integer (nullable = true)\n",
+            " |-- name: string (nullable = true)\n",
+            " |-- city: string (nullable = true)\n",
+            " |-- dept: string (nullable = true)\n",
+            " |-- doj: string (nullable = true)\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "my_schema = StructType([\n",
+        "    StructField(\"id\",IntegerType(),nullable=False),\n",
+        "    StructField(\"name\",StringType(),True),\n",
+        "    StructField(\"city\",StringType(),True),\n",
+        "    StructField(\"dept\",StringType(),True),\n",
+        "    StructField(\"doj\",DateType(),True),\n",
+        " \n",
+        "])"
+      ],
+      "metadata": {
+        "id": "srmzjiDrOFLk"
+      },
+      "execution_count": 192,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "employee_df = my_spark.read.format(\"csv\").option(\"header\",True).schema(my_schema).option(\"dateFormat\",\"d/M/y\").load(\"Employee.csv\")\n"
+      ],
+      "metadata": {
+        "id": "JZhX2bg8OP5U"
+      },
+      "execution_count": 193,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "employee_df.printSchema()"
+      ],
+      "metadata": {
+        "id": "1UBO9vmgOVWm",
+        "outputId": "21c54916-9875-4461-ba91-dd37a3957324",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 194,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "root\n",
+            " |-- id: integer (nullable = true)\n",
+            " |-- name: string (nullable = true)\n",
+            " |-- city: string (nullable = true)\n",
+            " |-- dept: string (nullable = true)\n",
+            " |-- doj: date (nullable = true)\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "employee_target_df = employee_df.withColumn(\"eff_end_date\",lit(\"31/12/9999\"))"
+      ],
+      "metadata": {
+        "id": "JNgBndcVOZ9l"
+      },
+      "execution_count": 195,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "employee_target_df.show()"
+      ],
+      "metadata": {
+        "id": "A1-knBqrOti4",
+        "outputId": "a135055a-3582-405a-c740-e619eea7d5e6",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 196,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "+---+-------+------+-----+----------+------------+\n",
+            "| id|   name|  city| dept|       doj|eff_end_date|\n",
+            "+---+-------+------+-----+----------+------------+\n",
+            "|  1|sravani| vizag| biba|2022-06-19|  31/12/9999|\n",
+            "|  2|susheel|   hyd|cloud|2022-05-19|  31/12/9999|\n",
+            "|  3|prabhas|   hyd|cloud|2022-05-19|  31/12/9999|\n",
+            "|  4|    ram|mumbai|  aws|1999-12-14|  31/12/9999|\n",
+            "+---+-------+------+-----+----------+------------+\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "employee_target_df.printSchema()"
+      ],
+      "metadata": {
+        "id": "hacaOPrqOwJx",
+        "outputId": "abb047c1-c979-4c32-a56f-5aac1e1d4f5f",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 197,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "root\n",
+            " |-- id: integer (nullable = true)\n",
+            " |-- name: string (nullable = true)\n",
+            " |-- city: string (nullable = true)\n",
+            " |-- dept: string (nullable = true)\n",
+            " |-- doj: date (nullable = true)\n",
+            " |-- eff_end_date: string (nullable = false)\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "metadata": {
+        "id": "y-NiUqMAPx53"
+      },
+      "execution_count": 197,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "employee_target_df.printSchema()\n"
+      ],
+      "metadata": {
+        "id": "jqjRGkLkQATF",
+        "outputId": "d7719674-3ac6-4fc0-b955-ccbe7ea5b84c",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 198,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "root\n",
+            " |-- id: integer (nullable = true)\n",
+            " |-- name: string (nullable = true)\n",
+            " |-- city: string (nullable = true)\n",
+            " |-- dept: string (nullable = true)\n",
+            " |-- doj: date (nullable = true)\n",
+            " |-- eff_end_date: string (nullable = false)\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "my_schema = StructType([\n",
+        "    StructField(\"id\",IntegerType(),nullable=False),\n",
+        "    StructField(\"name\",StringType(),True),\n",
+        "    StructField(\"city\",StringType(),True),\n",
+        "    StructField(\"dept\",IntegerType(),True),\n",
+        "    StructField(\"doj\",DateType(),True),\n",
+        "    StructField(\"eff_end_date\",DateType(),True)\n",
+        " \n",
+        "])"
+      ],
+      "metadata": {
+        "id": "XgqoPrX3RRKB"
+      },
+      "execution_count": 199,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "metadata": {
+        "id": "qq_zMLgcQO6c"
+      },
+      "execution_count": 199,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from pyspark.sql.functions import date_format,to_date\n"
+      ],
+      "metadata": {
+        "id": "r9G9j6u2RZwN"
+      },
+      "execution_count": 200,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "employee_target_df = employee_target_df.withColumn(\"eff_end_date\",to_date(lit('31/12/9999'),\"d/M/y\"))"
+      ],
+      "metadata": {
+        "id": "-XOeJk8HTHlx"
+      },
+      "execution_count": 201,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "employee_target_df.show()"
+      ],
+      "metadata": {
+        "id": "CXRq4sQ3Utxk",
+        "outputId": "6f0f8ef5-17af-417f-9418-5175b4581553",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 202,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "+---+-------+------+-----+----------+------------+\n",
+            "| id|   name|  city| dept|       doj|eff_end_date|\n",
+            "+---+-------+------+-----+----------+------------+\n",
+            "|  1|sravani| vizag| biba|2022-06-19|  9999-12-31|\n",
+            "|  2|susheel|   hyd|cloud|2022-05-19|  9999-12-31|\n",
+            "|  3|prabhas|   hyd|cloud|2022-05-19|  9999-12-31|\n",
+            "|  4|    ram|mumbai|  aws|1999-12-14|  9999-12-31|\n",
+            "+---+-------+------+-----+----------+------------+\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "employee_target_df = employee_target_df.withColumn(\"status\",lit(True))"
+      ],
+      "metadata": {
+        "id": "YWZ3pfmIVKgQ"
+      },
+      "execution_count": 203,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "employee_target_df.show()"
+      ],
+      "metadata": {
+        "id": "EV-PQ32MV5H9",
+        "outputId": "a83ee4f2-0a98-4953-945f-4b8dc52cd6b6",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 204,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "+---+-------+------+-----+----------+------------+------+\n",
+            "| id|   name|  city| dept|       doj|eff_end_date|status|\n",
+            "+---+-------+------+-----+----------+------------+------+\n",
+            "|  1|sravani| vizag| biba|2022-06-19|  9999-12-31|  true|\n",
+            "|  2|susheel|   hyd|cloud|2022-05-19|  9999-12-31|  true|\n",
+            "|  3|prabhas|   hyd|cloud|2022-05-19|  9999-12-31|  true|\n",
+            "|  4|    ram|mumbai|  aws|1999-12-14|  9999-12-31|  true|\n",
+            "+---+-------+------+-----+----------+------------+------+\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "delta_df = my_spark.read.format(\"csv\").option(\"header\",True).option(\"inferSchema\",True).load(\"delta.csv\")"
+      ],
+      "metadata": {
+        "id": "Bp_YU8ntV7H6"
+      },
+      "execution_count": 205,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "delta_df.printSchema()"
+      ],
+      "metadata": {
+        "id": "gafVv5lyXS-r",
+        "outputId": "5ff153f7-ff0e-473a-c45b-98fc7b288a5c",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 206,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "root\n",
+            " |-- id: integer (nullable = true)\n",
+            " |-- name: string (nullable = true)\n",
+            " |-- city: string (nullable = true)\n",
+            " |-- dept: string (nullable = true)\n",
+            " |-- doj: string (nullable = true)\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "my_schema = StructType([\n",
+        "    StructField(\"id\",IntegerType(),nullable=False),\n",
+        "    StructField(\"name\",StringType(),True),\n",
+        "    StructField(\"city\",StringType(),True),\n",
+        "    StructField(\"dept\",StringType(),True),\n",
+        "    StructField(\"doj\",DateType(),True)\n",
+        " \n",
+        "])"
+      ],
+      "metadata": {
+        "id": "f447FRhzXXPh"
+      },
+      "execution_count": 207,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "delta_df = my_spark.read.format(\"csv\").option(\"header\",True).schema(my_schema).option(\"dateFormat\",\"d/M/y\").load(\"delta.csv\")\n"
+      ],
+      "metadata": {
+        "id": "s3b-vC4CXdS6"
+      },
+      "execution_count": 208,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "delta_df.printSchema()"
+      ],
+      "metadata": {
+        "id": "WWRHUFh-XlDx",
+        "outputId": "2abd59cc-045a-4f23-c883-a34d3ab3e014",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 209,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "root\n",
+            " |-- id: integer (nullable = true)\n",
+            " |-- name: string (nullable = true)\n",
+            " |-- city: string (nullable = true)\n",
+            " |-- dept: string (nullable = true)\n",
+            " |-- doj: date (nullable = true)\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "delta_df = delta_df.withColumn(\"status\",lit(True))"
+      ],
+      "metadata": {
+        "id": "9UVQQrB3Xmlu"
+      },
+      "execution_count": 210,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "delta_df.show()"
+      ],
+      "metadata": {
+        "id": "psunhF3gvK93",
+        "outputId": "07004ba7-5549-4436-f022-f1e788335977",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 211,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "+---+---------+-------+-----+----------+------+\n",
+            "| id|     name|   city| dept|       doj|status|\n",
+            "+---+---------+-------+-----+----------+------+\n",
+            "|  3|  prabhas|chennai|cloud|2022-12-14|  true|\n",
+            "|  5|adipurush|ayodhya| java|2022-06-16|  true|\n",
+            "+---+---------+-------+-----+----------+------+\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "delta_df = delta_df.withColumn(\"eff_end_date\",to_date(lit('31/12/9999'),\"d/M/y\"))"
+      ],
+      "metadata": {
+        "id": "tZUu-8S0vLBS"
+      },
+      "execution_count": 212,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "delta_df.show()"
+      ],
+      "metadata": {
+        "id": "bdaw_fZlvUtC",
+        "outputId": "a7b66a1e-1135-493b-8e91-10c09fed1f76",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 213,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "+---+---------+-------+-----+----------+------+------------+\n",
+            "| id|     name|   city| dept|       doj|status|eff_end_date|\n",
+            "+---+---------+-------+-----+----------+------+------------+\n",
+            "|  3|  prabhas|chennai|cloud|2022-12-14|  true|  9999-12-31|\n",
+            "|  5|adipurush|ayodhya| java|2022-06-16|  true|  9999-12-31|\n",
+            "+---+---------+-------+-----+----------+------+------------+\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "delta_df = delta_df.select([\"id\",\"name\",\"city\",\"dept\",\"doj\",\"eff_end_date\",\"status\"])"
+      ],
+      "metadata": {
+        "id": "wvnPHiYPvjmc"
+      },
+      "execution_count": 214,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "delta_df.show()"
+      ],
+      "metadata": {
+        "id": "F1Pm8R8_nz7t",
+        "outputId": "3773e862-2f43-48ca-a151-9343c75dc6af",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 215,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "+---+---------+-------+-----+----------+------------+------+\n",
+            "| id|     name|   city| dept|       doj|eff_end_date|status|\n",
+            "+---+---------+-------+-----+----------+------------+------+\n",
+            "|  3|  prabhas|chennai|cloud|2022-12-14|  9999-12-31|  true|\n",
+            "|  5|adipurush|ayodhya| java|2022-06-16|  9999-12-31|  true|\n",
+            "+---+---------+-------+-----+----------+------------+------+\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "delta_df.printSchema()"
+      ],
+      "metadata": {
+        "id": "KQ4bdxR4oPYz",
+        "outputId": "016a49aa-3146-4afc-e485-fdde195df446",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 216,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "root\n",
+            " |-- id: integer (nullable = true)\n",
+            " |-- name: string (nullable = true)\n",
+            " |-- city: string (nullable = true)\n",
+            " |-- dept: string (nullable = true)\n",
+            " |-- doj: date (nullable = true)\n",
+            " |-- eff_end_date: date (nullable = true)\n",
+            " |-- status: boolean (nullable = false)\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "join_cond = [employee_target_df.id == delta_df.id,employee_target_df.status == True]"
+      ],
+      "metadata": {
+        "id": "lNptlm5wXn80"
+      },
+      "execution_count": 217,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "join_cond"
+      ],
+      "metadata": {
+        "id": "zb9llGJgvKKf",
+        "outputId": "098a053b-1649-4a04-a109-c0f0a8f9ddb8",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 218,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "[Column<'(id = id)'>, Column<'(status = true)'>]"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 218
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "employee_to_update_df = (employee_target_df\n",
+        "                          .join(delta_df, join_cond)\n",
+        "                          .select(employee_target_df.id,\n",
+        "                                  employee_target_df.name,\n",
+        "                                  employee_target_df.city,\n",
+        "                                  employee_target_df.dept,\n",
+        "                                  employee_target_df.doj,\n",
+        "                                  delta_df.doj.alias('eff_end_date'))\n",
+        "                          .withColumn('status', lit(False))\n",
+        "                         )\n"
+      ],
+      "metadata": {
+        "id": "1irwWXmCX7N4"
+      },
+      "execution_count": 219,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "employee_to_update_df.show()"
+      ],
+      "metadata": {
+        "id": "niaOY5HyY_pr",
+        "outputId": "c7bfd683-1b03-410e-e30e-2678f8123b3b",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 220,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "+---+-------+----+-----+----------+------------+------+\n",
+            "| id|   name|city| dept|       doj|eff_end_date|status|\n",
+            "+---+-------+----+-----+----------+------------+------+\n",
+            "|  3|prabhas| hyd|cloud|2022-05-19|  2022-12-14| false|\n",
+            "+---+-------+----+-----+----------+------------+------+\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "a = employee_to_update_df.collect()[0][0]"
+      ],
+      "metadata": {
+        "id": "Ew6qt8OVoT5q"
+      },
+      "execution_count": 221,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "a"
+      ],
+      "metadata": {
+        "id": "RSZMlc32uEHD",
+        "outputId": "d53aa7d7-2051-4077-e221-7a7c67978527",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 222,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "3"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 222
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#employee_target_df = employee_target_df.where(employee_target_df.id != a)"
+      ],
+      "metadata": {
+        "id": "sayHjDbnsc3s"
+      },
+      "execution_count": 223,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "merged_customers_df = delta_df.union(employee_to_update_df)"
+      ],
+      "metadata": {
+        "id": "356m6QnmZfqb"
+      },
+      "execution_count": 224,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "merged_customers_df.show()"
+      ],
+      "metadata": {
+        "id": "Ux9iUtUGuu-5",
+        "outputId": "447695b1-c302-4a62-9a6d-9b315ebc1e0f",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 225,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "+---+---------+-------+-----+----------+------------+------+\n",
+            "| id|     name|   city| dept|       doj|eff_end_date|status|\n",
+            "+---+---------+-------+-----+----------+------------+------+\n",
+            "|  3|  prabhas|chennai|cloud|2022-12-14|  9999-12-31|  true|\n",
+            "|  5|adipurush|ayodhya| java|2022-06-16|  9999-12-31|  true|\n",
+            "|  3|  prabhas|    hyd|cloud|2022-05-19|  2022-12-14| false|\n",
+            "+---+---------+-------+-----+----------+------------+------+\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "result = merged_customers_df.union(employee_target_df).orderBy(\"id\")"
+      ],
+      "metadata": {
+        "id": "iPVvHnstoeCE"
+      },
+      "execution_count": 226,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "result.show()"
+      ],
+      "metadata": {
+        "id": "y_MSR1CLo7gS",
+        "outputId": "d39c46ea-2feb-42b8-9b0d-6a3499bac673",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 227,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "+---+---------+-------+-----+----------+------------+------+\n",
+            "| id|     name|   city| dept|       doj|eff_end_date|status|\n",
+            "+---+---------+-------+-----+----------+------------+------+\n",
+            "|  1|  sravani|  vizag| biba|2022-06-19|  9999-12-31|  true|\n",
+            "|  2|  susheel|    hyd|cloud|2022-05-19|  9999-12-31|  true|\n",
+            "|  3|  prabhas|chennai|cloud|2022-12-14|  9999-12-31|  true|\n",
+            "|  3|  prabhas|    hyd|cloud|2022-05-19|  9999-12-31|  true|\n",
+            "|  3|  prabhas|    hyd|cloud|2022-05-19|  2022-12-14| false|\n",
+            "|  4|      ram| mumbai|  aws|1999-12-14|  9999-12-31|  true|\n",
+            "|  5|adipurush|ayodhya| java|2022-06-16|  9999-12-31|  true|\n",
+            "+---+---------+-------+-----+----------+------------+------+\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from pyspark.sql.window import Window\n",
+        "from pyspark.sql.functions import row_number,rank,dense_rank"
+      ],
+      "metadata": {
+        "id": "6MIqTqCDpOCO"
+      },
+      "execution_count": 228,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "window = Window.partitionBy('name').orderBy(result['name'])"
+      ],
+      "metadata": {
+        "id": "RCzPiDmkwOdM"
+      },
+      "execution_count": 229,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "ex_row_number = result.withColumn(\"Row Number\",row_number().over(window)).select(['id','name','city','dept','doj','eff_end_date','status','Row Number'])"
+      ],
+      "metadata": {
+        "id": "-EJ4vfBmwZDX"
+      },
+      "execution_count": 230,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [],
+      "metadata": {
+        "id": "6bhdJBHRxAAL"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "a = ex_row_number.orderBy(\"id\")"
+      ],
+      "metadata": {
+        "id": "1aHBu7uHwylm"
+      },
+      "execution_count": 234,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "a.show()"
+      ],
+      "metadata": {
+        "id": "rEAWwt-UyhiX",
+        "outputId": "356b305c-35a6-4bc5-f5d2-a54a960a6600",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 237,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "+---+---------+-------+-----+----------+------------+------+----------+\n",
+            "| id|     name|   city| dept|       doj|eff_end_date|status|Row Number|\n",
+            "+---+---------+-------+-----+----------+------------+------+----------+\n",
+            "|  1|  sravani|  vizag| biba|2022-06-19|  9999-12-31|  true|         1|\n",
+            "|  2|  susheel|    hyd|cloud|2022-05-19|  9999-12-31|  true|         1|\n",
+            "|  3|  prabhas|chennai|cloud|2022-12-14|  9999-12-31|  true|         1|\n",
+            "|  3|  prabhas|    hyd|cloud|2022-05-19|  2022-12-14| false|         2|\n",
+            "|  3|  prabhas|    hyd|cloud|2022-05-19|  9999-12-31|  true|         3|\n",
+            "|  4|      ram| mumbai|  aws|1999-12-14|  9999-12-31|  true|         1|\n",
+            "|  5|adipurush|ayodhya| java|2022-06-16|  9999-12-31|  true|         1|\n",
+            "+---+---------+-------+-----+----------+------------+------+----------+\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "a = a.where(a[\"Row Number\"] < 3).drop(\"Row Number\")\n"
+      ],
+      "metadata": {
+        "id": "RTET75tWw2lv"
+      },
+      "execution_count": 238,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "a.show()"
+      ],
+      "metadata": {
+        "id": "7z0mWW1sydvG",
+        "outputId": "050af5be-f33d-4135-b700-1aa146770ea5",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 239,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "+---+---------+-------+-----+----------+------------+------+\n",
+            "| id|     name|   city| dept|       doj|eff_end_date|status|\n",
+            "+---+---------+-------+-----+----------+------------+------+\n",
+            "|  1|  sravani|  vizag| biba|2022-06-19|  9999-12-31|  true|\n",
+            "|  2|  susheel|    hyd|cloud|2022-05-19|  9999-12-31|  true|\n",
+            "|  3|  prabhas|chennai|cloud|2022-12-14|  9999-12-31|  true|\n",
+            "|  3|  prabhas|    hyd|cloud|2022-05-19|  2022-12-14| false|\n",
+            "|  4|      ram| mumbai|  aws|1999-12-14|  9999-12-31|  true|\n",
+            "|  5|adipurush|ayodhya| java|2022-06-16|  9999-12-31|  true|\n",
+            "+---+---------+-------+-----+----------+------------+------+\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "metadata": {
+        "id": "sOXbOcHtypuL"
+      },
+      "execution_count": null,
+      "outputs": []
+    }
+  ],
+  "metadata": {
+    "colab": {
+      "name": "Welcome To Colaboratory",
+      "provenance": [],
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "display_name": "Python 3",
+      "name": "python3"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 0
+}
